@@ -341,8 +341,11 @@ public class CheckerTest extends BaseCheckTestSupport {
             fail("Exception is expected");
         }
         catch (UnsupportedEncodingException ex) {
-            assertEquals("Error message is not expected",
-                    "unsupported charset: 'UNKNOWN-CHARSET'", ex.getMessage());
+            final LocalizedMessage unsupportedCharsetMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.unsupportedCharset",
+                    new String[] {"UNKNOWN-CHARSET"}, null, CheckerTest.class, null);
+            assertEquals("Error message is not expected", unsupportedCharsetMessage.getMessage(),
+                    ex.getLocalizedMessage());
         }
     }
 
@@ -355,9 +358,11 @@ public class CheckerTest extends BaseCheckTestSupport {
             fail("Exception is expected");
         }
         catch (CheckstyleException ex) {
+            final LocalizedMessage moduleClassLoaderMustBeSpecifiedMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.moduleClassLoaderMustBeSpecified",
+                    null, null, CheckerTest.class, null);
             assertEquals("Error message is not expected",
-                    "if no custom moduleFactory is set, moduleClassLoader must be specified",
-                    ex.getMessage());
+                    moduleClassLoaderMustBeSpecifiedMessage.getMessage(), ex.getLocalizedMessage());
         }
     }
 
@@ -417,8 +422,11 @@ public class CheckerTest extends BaseCheckTestSupport {
             fail("Exception is expected");
         }
         catch (CheckstyleException ex) {
-            assertEquals("Error message is not expected",
-                    "java.lang.String is not allowed as a child in Checker", ex.getMessage());
+            final LocalizedMessage childNotAllowedMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.childNotAllowed",
+                    new String[] {"java.lang.String"}, null, Checker.class, null);
+            assertEquals("Error message is not expected", childNotAllowedMessage.getMessage(),
+                    ex.getLocalizedMessage());
         }
     }
 

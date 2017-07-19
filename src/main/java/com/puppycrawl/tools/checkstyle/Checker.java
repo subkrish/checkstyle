@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.sun.xml.internal.rngom.digested.DDefine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -55,6 +56,7 @@ import com.puppycrawl.tools.checkstyle.api.RootModule;
 import com.puppycrawl.tools.checkstyle.api.SeverityLevel;
 import com.puppycrawl.tools.checkstyle.api.SeverityLevelCounter;
 import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
+import org.apache.tools.ant.taskdefs.Local;
 
 /**
  * This class provides the functionality to check a set of files.
@@ -66,6 +68,33 @@ import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 public class Checker extends AutomaticBean implements MessageDispatcher, RootModule {
     /** Message to use when an exception occurs and should be printed as a violation. */
     public static final String EXCEPTION_MSG = "general.exception";
+
+    /**
+     * A key pointing to the unable to persist cache
+     * file message in the "messages.properties" file.
+     */
+    public static final String UNABLE_PERSIST_CACHE_FILE = "Checker.unablePersistCacheFile";
+
+    /**
+     * A key pointing to the exception while processing
+     * message in the "messages.properties" file.
+     */
+    public static final String EXCEPTION_WHILE_PROCESSING = "Checker.exceptionWhileProcessing";
+
+    /**
+     * A key pointing to the error while processing
+     * message in the "messages.properties" file.
+     */
+    public static final String ERROR_WHILE_PROCESSING = "Checker.errorWhileProcessing";
+
+    public static final String CHILD_NOT_ALLOWED = "Checker.childNotAllowed";
+
+    public static final String CANNOT_INITIALIZE_MODULE = "Checker.cannotInitializeModule";
+
+    public static final String MODULE_CLASS_LOADER_MUST_BE_SPECIFIED =
+            "Checker.moduleClassLoaderMustBeSpecified";
+
+    public static final String UNSUPPORTED_CHARSET = "Checker.unsupportedCharset";
 
     /** Logger for Checker. */
     private static final Log LOG = LogFactory.getLog(Checker.class);
@@ -177,7 +206,10 @@ public class Checker extends AutomaticBean implements MessageDispatcher, RootMod
                 cache.persist();
             }
             catch (IOException ex) {
-                throw new IllegalStateException("Unable to persist cache file.", ex);
+                final LocalizedMessage unablePersistCacheFileMessage = new LocalizedMessage(0,
+                        Definitions.CHECKSTYLE_BUNDLE, UNABLE_PERSIST_CACHE_FILE, null,
+                        null, Checker.class, null);
+                throw new IllegalStateException(unablePersistCacheFileMessage.getMessage(), ex);
             }
         }
     }
@@ -291,12 +323,17 @@ public class Checker extends AutomaticBean implements MessageDispatcher, RootMod
             // processing. See https://github.com/checkstyle/checkstyle/issues/2285
             catch (Exception ex) {
                 // We need to catch all exceptions to put a reason failure (file name) in exception
-                throw new CheckstyleException("Exception was thrown while processing "
-                        + file.getPath(), ex);
+                final LocalizedMessage exceptionWhileProcessingMessage = new LocalizedMessage(0,
+                        Definitions.CHECKSTYLE_BUNDLE, EXCEPTION_WHILE_PROCESSING,
+                        new String[] {file.getPath()}, null, Checker.class, null);
+                throw new CheckstyleException(exceptionWhileProcessingMessage.getMessage(), ex);
             }
             catch (Error error) {
                 // We need to catch all errors to put a reason failure (file name) in error
-                throw new Error("Error was thrown while processing " + file.getPath(), error);
+                final LocalizedMessage errorWhileProcessingMessage = new LocalizedMessage(0,
+                        Definitions.CHECKSTYLE_BUNDLE, ERROR_WHILE_PROCESSING,
+                        new String[] {file.getPath()}, null, Checker.class, null);
+                throw new Error(errorWhileProcessingMessage.getMessage(), error);
             }
         }
     }
@@ -417,9 +454,12 @@ public class Checker extends AutomaticBean implements MessageDispatcher, RootMod
         if (moduleFactory == null) {
 
             if (moduleClassLoader == null) {
-                throw new CheckstyleException(
-                        "if no custom moduleFactory is set, "
-                                + "moduleClassLoader must be specified");
+                final LocalizedMessage moduleClassLoaderMustbeSpecifiedMessage =
+                        new LocalizedMessage(0, Definitions.CHECKSTYLE_BUNDLE,
+                        MODULE_CLASS_LOADER_MUST_BE_SPECIFIED, null, null,
+                        Checker.class, null);
+                throw new CheckstyleException(moduleClassLoaderMustbeSpecifiedMessage
+                        .getMessage());
             }
 
             final Set<String> packageNames = PackageNamesLoader
@@ -453,8 +493,13 @@ public class Checker extends AutomaticBean implements MessageDispatcher, RootMod
             }
         }
         catch (final CheckstyleException ex) {
-            throw new CheckstyleException("cannot initialize module " + name
-                    + " - " + ex.getMessage(), ex);
+//            throw new CheckstyleException("cannot initialize module " + name
+//                    + " - " + ex.getMessage(), ex);
+
+            final LocalizedMessage cannotInitializeModuleMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, CANNOT_INITIALIZE_MODULE,
+                    new String[] {name, ex.getMessage()}, null, Checker.class, null);
+            throw new CheckstyleException(cannotInitializeModuleMessage.getMessage(), ex);
         }
         if (child instanceof FileSetCheck) {
             final FileSetCheck fsc = (FileSetCheck) child;
@@ -474,8 +519,10 @@ public class Checker extends AutomaticBean implements MessageDispatcher, RootMod
             addListener(listener);
         }
         else {
-            throw new CheckstyleException(name
-                    + " is not allowed as a child in Checker");
+            final LocalizedMessage childNotAllowedMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, CHILD_NOT_ALLOWED, new String[] {name}, null,
+                    Checker.class, null);
+            throw new CheckstyleException(childNotAllowedMessage.getMessage());
         }
     }
 
@@ -594,8 +641,11 @@ public class Checker extends AutomaticBean implements MessageDispatcher, RootMod
     public void setCharset(String charset)
             throws UnsupportedEncodingException {
         if (!Charset.isSupported(charset)) {
+            final LocalizedMessage unsupportedCharsetMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, UNSUPPORTED_CHARSET, new String[] {charset},
+                    null, Checker.class, null);
             final String message = "unsupported charset: '" + charset + "'";
-            throw new UnsupportedEncodingException(message);
+            throw new UnsupportedEncodingException(unsupportedCharsetMessage.getMessage());
         }
         this.charset = charset;
     }

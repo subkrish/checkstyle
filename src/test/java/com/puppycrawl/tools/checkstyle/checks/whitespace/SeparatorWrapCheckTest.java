@@ -21,12 +21,15 @@ package com.puppycrawl.tools.checkstyle.checks.whitespace;
 
 import static com.puppycrawl.tools.checkstyle.checks.whitespace.SeparatorWrapCheck.MSG_LINE_NEW;
 import static com.puppycrawl.tools.checkstyle.checks.whitespace.SeparatorWrapCheck.MSG_LINE_PREVIOUS;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
 
+import com.puppycrawl.tools.checkstyle.Definitions;
+import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,11 +108,15 @@ public class SeparatorWrapCheckTest
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
+            final LocalizedMessage cannotInitializeModuleMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.cannotInitializeModule",
+                    new String[] {"com.puppycrawl.tools.checkstyle.TreeWalker", ex.getMessage()}, null, SeparatorWrapCheckTest.class, null);
             final String messageStart = "cannot initialize module "
                 + "com.puppycrawl.tools.checkstyle.TreeWalker - Cannot set property 'option' to "
                 + "'invalid_option' in module";
-            assertTrue("Invalid exception message, should start with: " + messageStart,
-                ex.getMessage().startsWith(messageStart));
+//            assertTrue("Invalid exception message, should start with: " + messageStart,
+//                    ex.getMessage().startsWith(messageStart));
+            assertEquals(cannotInitializeModuleMessage.getMessage(), ex.getMessage());
         }
     }
 }

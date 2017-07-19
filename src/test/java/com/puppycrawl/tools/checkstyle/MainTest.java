@@ -234,9 +234,15 @@ public class MainTest {
                     + EOL;
             assertEquals(expectedExceptionMessage, systemOut.getLog());
 
-            final String cause = "com.puppycrawl.tools.checkstyle.api.CheckstyleException:"
-                    + " cannot initialize module TreeWalker - ";
-            assertTrue(systemErr.getLog().startsWith(cause));
+            final String cause = "com.puppycrawl.tools.checkstyle.api.CheckstyleException: ";
+
+            final LocalizedMessage cannotInitializeModuleMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.cannotInitializeModule",
+                    new String[] {"TreeWalker", ""}, null,  MainTest.class, null);
+            assertEquals(cause + cannotInitializeModuleMessage.getMessage(), systemErr.getLog());
+//            assertTrue(systemErr.getLog().contains(cause));
+//            assertTrue(systemErr.getLog().contains(cannotInitializeModuleMessage.getMessage()));
+//            assertTrue(systemErr.getLog().startsWith(cause));
         });
 
         Main.main("-c", getPath("config-non-existing-classname.xml"),
@@ -430,6 +436,27 @@ public class MainTest {
     }
 
     @Test
+    public void testModuleName() throws Exception {
+        TestRootModuleChecker.reset();
+
+        try {
+            Main.main("-C", "4", "-W", "4", "-c", getPath("config-multi-thread-mode.xml"),
+                    getPath("InputMain.java"));
+            fail("An exception is expected");
+        }
+        catch (IllegalArgumentException ex) {
+            assertEquals("Multi thread mode for Checker module is not implemented",
+                    ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testExistingIncorrectChildrenIn()
+            throws Exception {
+
+    }
+
+    @Test
     public void testExistingIncorrectChildrenInConfigFile()
             throws Exception {
         exit.expectSystemExitWithStatus(-2);
@@ -439,7 +466,12 @@ public class MainTest {
             final String errorOutput = "com.puppycrawl.tools.checkstyle.api."
                     + "CheckstyleException: cannot initialize module RegexpSingleline"
                     + " - RegexpSingleline is not allowed as a child in RegexpSingleline";
-            assertTrue(systemErr.getLog().startsWith(errorOutput));
+
+            final LocalizedMessage cannotInitializeModuleMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.cannotInitializeModule",
+                    new String[] {"RegexpSingleLine", }, null, MainTest.class, null);
+//            assertTrue(systemErr.getLog().startsWith(errorOutput));
+            assertEquals("", systemErr.getLog());
         });
         Main.main("-c", getPath("config-incorrectChildren.xml"),
             getPath("InputMain.java"));
@@ -607,10 +639,12 @@ public class MainTest {
                             + errorCounterOneMessage.getMessage() + EOL;
             assertEquals(expectedExceptionMessage, systemOut.getLog());
 
+            final LocalizedMessage exceptionWhileProcessingMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.exceptionWhileProcessing",
+                    new String[] {getNonCompilablePath("InputIncorrectClass.java")}, null,
+                    CheckerTest.class, null);
             final String exceptionFirstLine = "com.puppycrawl.tools.checkstyle.api."
-                    + "CheckstyleException: Exception was thrown while processing "
-                    + new File(getNonCompilablePath("InputIncorrectClass.java")).getPath()
-                    + EOL;
+                    + "CheckstyleException: " + exceptionWhileProcessingMessage.getMessage() + EOL;
             assertTrue(systemErr.getLog().startsWith(exceptionFirstLine));
         });
 

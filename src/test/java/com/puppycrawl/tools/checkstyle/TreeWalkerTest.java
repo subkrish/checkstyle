@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.puppycrawl.tools.checkstyle.api.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -115,8 +116,12 @@ public class TreeWalkerTest extends BaseCheckTestSupport {
                     + Pattern.quote(" was not found in Acceptable tokens list in check"
                     + " com.puppycrawl.tools.checkstyle.checks.coding.HiddenFieldCheck"));
 
+            final LocalizedMessage cannotInitializeModuleMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.cannotInitializeModule",
+                    new String[] {"com.puppycrawl.tools.checkstyle.TreeWalker", "Token " + Pattern.compile("\"(ENUM_DEF|CLASS_DEF|METHOD_DEF|IMPORT)\"") + " was not found in Acceptable tokens list in check com.puppycrawl.tools.checkstyle.checks.coding.HiddenFieldCheck"}, null, Checker.class, null);
             final Matcher errorMsgMatcher = expected.matcher(errorMsg);
-            assertTrue("Failure for: " + errorMsg, errorMsgMatcher.matches());
+//            assertTrue("Failure for: " + errorMsg, errorMsgMatcher.matches());
+            assertEquals(cannotInitializeModuleMessage.getMessage(), ex.getMessage());
         }
     }
 
@@ -280,11 +285,14 @@ public class TreeWalkerTest extends BaseCheckTestSupport {
             fail("CheckstyleException is expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue("Error message is unexpected",
-                    ex.getMessage().startsWith("cannot initialize module"
-                + " com.puppycrawl.tools.checkstyle.TreeWalker - Token \""
-                + TokenTypes.ASSIGN + "\" from required"
-                + " tokens was not found in default tokens list in check"));
+            final LocalizedMessage cannotInitializeModuleMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, "Checker.cannotInitializeModule",
+                    new String[] {"com.puppycrawl.tools.checkstyle.TreeWalker", "Token \""
+                            + TokenTypes.ASSIGN + "\" from required tokens was not found in "
+                            + "default tokens list in check com.puppycrawl.tools.checkstyle."
+                            + "TreeWalkerTest$RequiredTokenIsNotInDefaultsCheck"},
+                            null, Checker.class, null);
+            assertEquals(cannotInitializeModuleMessage.getMessage(), ex.getLocalizedMessage());
         }
     }
 
